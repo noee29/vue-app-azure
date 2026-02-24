@@ -1,5 +1,6 @@
 node_modules
-Art/node_modules
-Art/dist
+npm-debug.log
 .git
-.github
+.gitignore
+Dockerfile
+README.md
