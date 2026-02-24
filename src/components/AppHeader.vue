@@ -8,6 +8,7 @@
       <a href="#">Historique</a>
       <a href="#">Login</a>
       <a href="#">Register</a>
+      <a href="#">Logout</a>
     </nav>
   </header>
 </template>
