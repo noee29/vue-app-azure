@@ -9,6 +9,7 @@
       <a href="#">Login</a>
       <a href="#">Register</a>
       <a href="#">Logout</a>
+      <a href="#">Profile</a>
     </nav>
   </header>
 </template>
