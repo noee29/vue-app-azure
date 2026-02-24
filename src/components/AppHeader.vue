@@ -7,6 +7,7 @@
       <a href="#">Générer</a>
       <a href="#">Historique</a>
       <a href="#">Login</a>
+      <a href="#">Register</a>
     </nav>
   </header>
 </template>
