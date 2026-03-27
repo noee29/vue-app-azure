@@ -1,8 +1,9 @@
 <script setup>
 import AuthContainer from "@/components/AuthContainer.vue"
-import { ref } from "vue"
+import { ref, computed } from "vue"
 import { useRouter, RouterLink } from "vue-router"
 import { signupUser } from "@/services/auth"
+import { creerUtilisateur } from "@/services/firestore"
 
 import eyeOpen from "@/assets/icons/Icon-eye-open.png"
 import eyeClosed from "@/assets/icons/Icon-eye-closed.png"
@@ -26,6 +27,38 @@ const togglePassword = () => {
 const toggleConfirmPassword = () => {
   showConfirmPassword.value = !showConfirmPassword.value
 }
+
+const motDePasseType = computed(() => {
+  if (showPassword.value) {
+    return "text"
+  }
+
+  return "password"
+})
+
+const iconeMotDePasse = computed(() => {
+  if (showPassword.value) {
+    return eyeOpen
+  }
+
+  return eyeClosed
+})
+
+const confirmationMotDePasseType = computed(() => {
+  if (showConfirmPassword.value) {
+    return "text"
+  }
+
+  return "password"
+})
+
+const iconeConfirmationMotDePasse = computed(() => {
+  if (showConfirmPassword.value) {
+    return eyeOpen
+  }
+
+  return eyeClosed
+})
 
 const handleSignup = async () => {
   errorMessage.value = ""
@@ -53,7 +86,15 @@ const handleSignup = async () => {
 
   try {
     loading.value = true
-    await signupUser(email.value, password.value)
+    const userCredential = await signupUser(email.value, password.value)
+
+    await creerUtilisateur(
+      userCredential.user.uid,
+      firstName.value,
+      lastName.value,
+      email.value,
+    )
+
     router.push("/generer")
   } catch (error) {
     console.error("Firebase signup error:", error)
@@ -119,11 +160,11 @@ const handleSignup = async () => {
             <input
               id="password"
               v-model="password"
-              :type="showPassword ? 'text' : 'password'"
+              :type="motDePasseType"
               placeholder="Veuillez entrer votre mot de passe"
             />
             <img
-              :src="showPassword ? eyeOpen : eyeClosed"
+              :src="iconeMotDePasse"
               alt="Afficher ou masquer le mot de passe"
               class="eye-icon"
               @click="togglePassword"
@@ -137,11 +178,11 @@ const handleSignup = async () => {
             <input
               id="confirmPassword"
               v-model="confirmPassword"
-              :type="showConfirmPassword ? 'text' : 'password'"
+              :type="confirmationMotDePasseType"
               placeholder="Veuillez confirmer votre mot de passe"
             />
             <img
-              :src="showConfirmPassword ? eyeOpen : eyeClosed"
+              :src="iconeConfirmationMotDePasse"
               alt="Afficher ou masquer le mot de passe"
               class="eye-icon"
               @click="toggleConfirmPassword"
@@ -150,7 +191,8 @@ const handleSignup = async () => {
         </div>
 
         <button type="submit" class="signup-btn" :disabled="loading">
-          {{ loading ? "Création..." : "S'inscrire" }}
+          <span v-if="loading">Création...</span>
+          <span v-else>S'inscrire</span>
         </button>
 
         <p v-if="errorMessage" class="error-message">

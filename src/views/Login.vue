@@ -1,7 +1,7 @@
 <script setup>
 import AuthContainer from "@/components/AuthContainer.vue"
 import { RouterLink, useRouter } from "vue-router"
-import { ref } from "vue"
+import { ref, computed } from "vue"
 import { loginUser } from "@/services/auth"
 
 import eyeOpen from "@/assets/icons/Icon-eye-open.png"
@@ -18,6 +18,22 @@ const showPassword = ref(false)
 const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
+
+const motDePasseType = computed(() => {
+  if (showPassword.value) {
+    return "text"
+  }
+
+  return "password"
+})
+
+const iconeMotDePasse = computed(() => {
+  if (showPassword.value) {
+    return eyeOpen
+  }
+
+  return eyeClosed
+})
 
 const handleLogin = async () => {
   errorMessage.value = ""
@@ -71,12 +87,12 @@ const handleLogin = async () => {
             <input
               id="password"
               v-model="password"
-              :type="showPassword ? 'text' : 'password'"
+              :type="motDePasseType"
               placeholder="Veuillez entrer votre mot de passe"
             />
 
             <img
-              :src="showPassword ? eyeOpen : eyeClosed"
+              :src="iconeMotDePasse"
               alt="Afficher ou masquer le mot de passe"
               class="eye-icon"
               @click="togglePassword"
@@ -85,18 +101,14 @@ const handleLogin = async () => {
         </div>
 
         <div class="form-options">
-          <label class="remember-me">
-            <input type="checkbox" />
-            <span>Se souvenir de moi</span>
-          </label>
-
           <RouterLink to="/forgot-password" class="forgot-password">
             Mot de passe oublié ?
           </RouterLink>
         </div>
 
         <button type="submit" class="login-btn" :disabled="loading">
-          {{ loading ? "Connexion..." : "Se connecter" }}
+          <span v-if="loading">Connexion...</span>
+          <span v-else>Se connecter</span>
         </button>
 
         <p v-if="errorMessage" class="error-message">
@@ -179,24 +191,7 @@ const handleLogin = async () => {
 .form-options {
   margin-top: 6px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.remember-me {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 15px;
-  color: #111;
-  cursor: pointer;
-}
-
-.remember-me input {
-  width: 18px;
-  height: 18px;
-  accent-color: #1b9cf0;
+  justify-content: flex-end;
 }
 
 .forgot-password {
@@ -270,7 +265,6 @@ const handleLogin = async () => {
   }
 
   .forgot-password,
-  .remember-me,
   .register-text {
     font-size: 14px;
   }
@@ -282,8 +276,7 @@ const handleLogin = async () => {
   }
 
   .form-options {
-    flex-direction: column;
-    align-items: flex-start;
+    justify-content: flex-start;
   }
 
   .login-btn {

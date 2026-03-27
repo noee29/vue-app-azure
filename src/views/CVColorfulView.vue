@@ -1,9 +1,16 @@
 <script setup>
-import { ref, reactive, computed } from "vue"
+import { ref, reactive, computed, onMounted } from "vue"
+import { useRoute } from "vue-router"
 import html2pdf from "html2pdf.js"
-import { auth } from "../firebase"
+import html2canvas from "html2canvas"
+import { onAuthStateChanged } from "firebase/auth"
+import { auth } from "@/firebase"
+import { sauvegarderCV, mettreAJourCV, getCV } from "@/services/firestore"
 
 const activeTab = ref("infos")
+const route = useRoute()
+const cvId = ref(null)
+const messageSauvegarde = ref("")
 const couleurFond = ref("#0d2137")
 const couleurTexte = ref("#ffffff")
 
@@ -189,6 +196,103 @@ const supprimerCertification = (i) => {
   form.certifications.splice(i, 1)
 }
 
+const attendreUtilisateurConnecte = () => {
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe()
+      resolve(user)
+    })
+  })
+}
+
+// Crée un aperçu image du CV pour l'historique.
+const creerApercuImage = async () => {
+  const element = document.getElementById("cv-colorful-export")
+  if (!element) {
+    return ""
+  }
+
+  const largeur = element.scrollWidth
+  const hauteur = element.scrollHeight
+
+  const conteneur = document.createElement("div")
+  conteneur.style.position = "fixed"
+  conteneur.style.left = "-10000px"
+  conteneur.style.top = "0"
+  conteneur.style.padding = "0"
+  conteneur.style.margin = "0"
+  conteneur.style.background = "#ffffff"
+
+  const clone = element.cloneNode(true)
+  clone.style.boxShadow = "none"
+  clone.style.margin = "0"
+  clone.style.background = "#ffffff"
+  clone.style.display = "flex"
+  clone.style.flexDirection = "row"
+  clone.style.width = largeur + "px"
+  clone.style.minHeight = hauteur + "px"
+
+  conteneur.appendChild(clone)
+  document.body.appendChild(conteneur)
+
+  try {
+    const canvas = await html2canvas(clone, {
+      scale: 1,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      width: largeur,
+      height: hauteur,
+      // Force un viewport desktop pour ne pas activer le media query mobile.
+      windowWidth: 1400,
+      windowHeight: hauteur,
+      scrollX: 0,
+      scrollY: 0,
+    })
+
+    return canvas.toDataURL("image/jpeg", 0.72)
+  } catch (error) {
+    console.error("Erreur creation apercu:", error)
+    return ""
+  } finally {
+    document.body.removeChild(conteneur)
+  }
+}
+
+const sauvegarder = async () => {
+  const user = auth.currentUser
+  if (!user) {
+    messageSauvegarde.value = "Connectez-vous pour sauvegarder."
+    return
+  }
+
+  const emailUtilisateur = user.email
+  if (!emailUtilisateur) {
+    messageSauvegarde.value = "Impossible de lire votre email utilisateur."
+    return
+  }
+
+  const titre = (form.prenom + " " + form.nom).trim() || "Mon CV"
+
+  try {
+    const apercuImage = await creerApercuImage()
+
+    if (cvId.value) {
+      await mettreAJourCV(user.uid, emailUtilisateur, cvId.value, titre, { ...form }, apercuImage)
+    } else {
+      const doc = await sauvegarderCV(user.uid, emailUtilisateur, "colorful", titre, { ...form }, apercuImage)
+      cvId.value = doc.id
+    }
+
+    messageSauvegarde.value = "CV sauvegarde !"
+    setTimeout(() => {
+      messageSauvegarde.value = ""
+    }, 3000)
+  } catch (error) {
+    console.error("Erreur sauvegarde:", error)
+    messageSauvegarde.value = "Erreur lors de la sauvegarde."
+  }
+}
+
 const telechargerPDF = async () => {
   if (!utilisateurEstConnecte()) {
     alert("Vous devez etre connecté pour telecharger votre CV en PDF.")
@@ -222,6 +326,28 @@ const telechargerPDF = async () => {
 
   await html2pdf().set(options).from(element).save()
 }
+
+onMounted(async () => {
+  const id = route.query.id
+  if (typeof id !== "string") {
+    return
+  }
+
+  const user = await attendreUtilisateurConnecte()
+  if (!user) {
+    return
+  }
+
+  try {
+    const snap = await getCV(user.uid, id)
+    if (snap.exists()) {
+      cvId.value = id
+      Object.assign(form, snap.data().donnees)
+    }
+  } catch (error) {
+    console.error("Erreur chargement:", error)
+  }
+})
 </script>
 
 <template>
@@ -532,7 +658,9 @@ const telechargerPDF = async () => {
         </div>
 
         <div class="form-footer">
+          <button class="btn-sauvegarder" @click="sauvegarder">Sauvegarder</button>
           <button class="btn-download" @click="telechargerPDF">Télécharger PDF</button>
+          <p v-if="messageSauvegarde" class="msg-sauvegarde">{{ messageSauvegarde }}</p>
         </div>
       </aside>
 
@@ -833,7 +961,24 @@ const telechargerPDF = async () => {
   padding: 14px 18px;
   border-top: 1px solid #d8d8d8;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
+
+.btn-sauvegarder {
+  width: 100%;
+  height: 42px;
+  background: #2f89e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-sauvegarder:hover { background: #246fba; }
 
 .btn-download {
   width: 100%;
@@ -848,6 +993,13 @@ const telechargerPDF = async () => {
 }
 
 .btn-download:hover { background: #122a44; }
+
+.msg-sauvegarde {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1d5c9a;
+}
 
 /* Aperçu CV */
 

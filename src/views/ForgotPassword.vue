@@ -67,7 +67,8 @@ export default {
         </div>
 
         <button type="submit" class="login-btn" :disabled="loading">
-          {{ loading ? "Envoi..." : "Envoyer" }}
+          <span v-if="loading">Envoi...</span>
+          <span v-else>Envoyer</span>
         </button>
 
         <p v-if="message" class="info-message">{{ message }}</p>

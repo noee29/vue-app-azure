@@ -81,15 +81,14 @@ const getCurrentUser = () => {
   })
 }
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to) => {
   const user = await getCurrentUser()
 
   if (to.meta.guestOnly && user) {
-    next("/generer")
-    return
+    return "/generer"
   }
 
-  next()
+  return true
 })
 
 export default router
