@@ -1,5 +1,7 @@
 <script setup>
 import { ref, reactive, computed } from "vue"
+import html2pdf from "html2pdf.js"
+import { auth } from "../firebase"
 
 const activeTab = ref("infos")
 const couleurFond = ref("#0d2137")
@@ -98,6 +100,59 @@ const enLignes = (texte) => {
   return texte.split("\n").filter((l) => l.trim())
 }
 
+const dateFinInvalide = (element) => {
+  if (!element) {
+    return false
+  }
+
+  if (!element.moisDebut || !element.anneeDebut) {
+    return false
+  }
+
+  if (!element.moisFin || !element.anneeFin) {
+    return false
+  }
+
+  const debut = new Date(Number(element.anneeDebut), Number(element.moisDebut) - 1, 1)
+  const fin = new Date(Number(element.anneeFin), Number(element.moisFin) - 1, 1)
+
+  if (fin <= debut) {
+    return true
+  }
+
+  return false
+}
+
+const aDesDatesInvalides = () => {
+  for (let i = 0; i < form.formations.length; i++) {
+    if (dateFinInvalide(form.formations[i])) {
+      return true
+    }
+  }
+
+  for (let i = 0; i < form.experiences.length; i++) {
+    if (dateFinInvalide(form.experiences[i])) {
+      return true
+    }
+  }
+
+  for (let i = 0; i < form.benevoles.length; i++) {
+    if (dateFinInvalide(form.benevoles[i])) {
+      return true
+    }
+  }
+
+  return false
+}
+
+const utilisateurEstConnecte = () => {
+  if (!auth.currentUser) {
+    return false
+  }
+
+  return true
+}
+
 const onPhotoChange = (event) => {
   const fichier = event.target.files[0]
   if (!fichier) return
@@ -134,8 +189,38 @@ const supprimerCertification = (i) => {
   form.certifications.splice(i, 1)
 }
 
-const telechargerPDF = () => {
-  window.print()
+const telechargerPDF = async () => {
+  if (!utilisateurEstConnecte()) {
+    alert("Vous devez etre connecté pour telecharger votre CV en PDF.")
+    return
+  }
+
+  if (aDesDatesInvalides()) {
+    alert("La date de fin doit etre strictement superieure a la date de debut.")
+    return
+  }
+
+  const element = document.getElementById("cv-colorful-export")
+  if (!element) return
+
+  const options = {
+    margin: 0,
+    filename: `CV_${form.prenom || "prenom"}_${form.nom || "nom"}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    },
+    jsPDF: {
+      unit: "mm",
+      format: "a4",
+      orientation: "portrait",
+    },
+    pagebreak: { mode: ["css", "legacy"] },
+  }
+
+  await html2pdf().set(options).from(element).save()
 }
 </script>
 
@@ -268,6 +353,9 @@ const telechargerPDF = () => {
                   </select>
                 </div>
               </div>
+              <p v-if="dateFinInvalide(edu)" class="date-error">
+                La date de fin doit etre strictement superieure a la date de debut.
+              </p>
             </div>
             <button class="btn-ajouter" @click="ajouterFormation">+ Ajouter une formation</button>
           </div>
@@ -326,6 +414,9 @@ const telechargerPDF = () => {
                   </select>
                 </div>
               </div>
+              <p v-if="dateFinInvalide(exp)" class="date-error">
+                La date de fin doit etre strictement superieure a la date de debut.
+              </p>
             </div>
             <button class="btn-ajouter" @click="ajouterExperience">+ Ajouter une expérience</button>
           </div>
@@ -431,6 +522,9 @@ const telechargerPDF = () => {
                   </select>
                 </div>
               </div>
+              <p v-if="dateFinInvalide(ben)" class="date-error">
+                La date de fin doit etre strictement superieure a la date de debut.
+              </p>
             </div>
             <button class="btn-ajouter" @click="ajouterBenevole">+ Ajouter un bénévolat</button>
           </div>
@@ -681,6 +775,13 @@ const telechargerPDF = () => {
   color: #9b9b9b;
 }
 
+.date-error {
+  margin-top: -2px;
+  font-size: 12px;
+  color: #d12b2b;
+  font-weight: 600;
+}
+
 .repeater-block {
   border: 1px solid #d8d8d8;
   border-radius: 10px;
@@ -761,6 +862,7 @@ const telechargerPDF = () => {
 
 .cv-page {
   display: flex;
+  box-sizing: border-box;
   width: 210mm;
   min-height: 297mm;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
