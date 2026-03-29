@@ -6,7 +6,10 @@ import html2canvas from "html2canvas"
 import { onAuthStateChanged } from "firebase/auth"
 import { auth } from "@/firebase"
 import { sauvegarderCV, mettreAJourCV, getCV } from "@/services/firestore"
+import { analyserCV } from "@/services/apiService"
 
+const resultatAnalyse = ref(null)
+const loadingAnalyse = ref(false)
 const activeTab = ref("infos")
 const route = useRoute()
 const cvId = ref(null)
@@ -314,6 +317,20 @@ onMounted(async () => {
     console.error("Erreur chargement:", error)
   }
 })
+
+
+const analyserMonCV = async () => {
+
+  loadingAnalyse.value = true
+
+  const result = await analyserCV(form)
+
+  if (result) {
+    resultatAnalyse.value = result
+  }
+
+  loadingAnalyse.value = false
+}
 </script>
 
 <template>
@@ -606,8 +623,30 @@ onMounted(async () => {
 
         <div class="form-footer">
           <button class="btn-sauvegarder" @click="sauvegarder">Sauvegarder</button>
+          <button class="btn-analyse" :disabled="loadingAnalyse" @click="analyserMonCV">
+            <span v-if="loadingAnalyse">Analyse en cours...</span>
+            <span v-else>Analyser mon CV</span>
+          </button>
           <button class="btn-download" @click="telechargerPDF">Télécharger PDF</button>
           <p v-if="messageSauvegarde" class="msg-sauvegarde">{{ messageSauvegarde }}</p>
+
+          <div v-if="resultatAnalyse" class="analyse-resultat">
+            <h3>Score ATS : {{ resultatAnalyse.score }}/100</h3>
+
+            <div class="analyse-bloc">
+              <h4>Points forts :</h4>
+              <ul>
+                <li v-for="(p, i) in resultatAnalyse.pointsForts" :key="i">{{ p }}</li>
+              </ul>
+            </div>
+
+            <div class="analyse-bloc">
+              <h4>A ameliorer :</h4>
+              <ul>
+                <li v-for="(p, i) in resultatAnalyse.aAmeliorer" :key="i">{{ p }}</li>
+              </ul>
+            </div>
+          </div>
         </div>
 
       </aside>
@@ -919,6 +958,25 @@ onMounted(async () => {
 
 .btn-sauvegarder:hover { background: #246fba; }
 
+.btn-analyse {
+  width: 100%;
+  height: 42px;
+  background: #1d4ed8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-analyse:hover { background: #1e40af; }
+
+.btn-analyse:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .btn-download {
   width: 100%;
   height: 42px;
@@ -938,6 +996,40 @@ onMounted(async () => {
   font-size: 12px;
   font-weight: 600;
   color: #1d5c9a;
+}
+
+.analyse-resultat {
+  border: 1px solid #dbe4ff;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f8faff;
+}
+
+.analyse-resultat h3 {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #1e3a8a;
+}
+
+.analyse-bloc {
+  margin-bottom: 8px;
+}
+
+.analyse-bloc h4 {
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: #1f2937;
+}
+
+.analyse-bloc ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.analyse-bloc li {
+  font-size: 12px;
+  color: #111827;
+  line-height: 1.4;
 }
 
 
