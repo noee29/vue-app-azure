@@ -11,6 +11,7 @@ import CVColorfulView from "../views/CVColorfulView.vue"
 import HistoriqueView from "../views/HistoriqueView.vue"
 import NotFoundView from "../views/NotFoundView.vue"
 
+// Définition des routes principales de l'application
 const routes = [
   {
     path: "/",
@@ -67,6 +68,7 @@ const router = createRouter({
   routes,
 })
 
+// Empêche un utilisateur connecté d'accéder aux pages réservées aux invités
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
   await authStore.waitUntilReady()

@@ -10,6 +10,7 @@ import eyeClosed from "@/assets/icons/Icon-eye-closed.png"
 const router = useRouter()
 const authStore = useAuthStore()
 
+// Champs du formulaire d'inscription
 const firstName = ref("")
 const lastName = ref("")
 const email = ref("")
@@ -19,18 +20,22 @@ const errorMessage = ref("")
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
+// Permet d'afficher ou masquer le mot de passe principal
 const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
+// Permet d'afficher ou masquer la confirmation du mot de passe
 const toggleConfirmPassword = () => {
   showConfirmPassword.value = !showConfirmPassword.value
 }
 
+// Type dynamique de l'input mot de passe
 const motDePasseType = computed(() => {
   return showPassword.value ? "text" : "password"
 })
 
+// Icône dynamique selon l'état d'affichage du mot de passe
 const iconeMotDePasse = computed(() => {
   return showPassword.value ? eyeOpen : eyeClosed
 })
@@ -43,6 +48,7 @@ const iconeConfirmationMotDePasse = computed(() => {
   return showConfirmPassword.value ? eyeOpen : eyeClosed
 })
 
+// Gère l'inscription de l'utilisateur avec validation des champs
 const handleSignup = async () => {
   errorMessage.value = ""
 
@@ -75,8 +81,10 @@ const handleSignup = async () => {
       password.value
     )
 
+    // Redirection vers la page de génération après création du compte
     router.push("/generer")
   } catch (error) {
+    // Gestion des erreurs Firebase pour afficher un message compréhensible
     if (error.code === "auth/email-already-in-use") {
       errorMessage.value = "Cet email est déjà utilisé."
     } else if (error.code === "auth/invalid-email") {
@@ -91,6 +99,7 @@ const handleSignup = async () => {
   }
 }
 
+// Permet de récupérer l'état de chargement depuis le store
 const loading = computed(() => authStore.loading)
 </script>
 

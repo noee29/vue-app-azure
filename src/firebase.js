@@ -3,6 +3,7 @@ import { getAuth } from "firebase/auth"
 import { getFirestore } from "firebase/firestore"
 import { getAnalytics, isSupported } from "firebase/analytics"
 
+// Configuration du projet Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDOJM8ICK-Qg_6_zfhKLRuXe4TDEVBgtko",
   authDomain: "smartcv-eee2d.firebaseapp.com",
@@ -13,8 +14,10 @@ const firebaseConfig = {
   measurementId: "G-WR9XF13644"
 }
 
+// Initialisation de l'application Firebase
 const app = initializeApp(firebaseConfig)
 
+// Export des services principaux utilisés dans l'application
 export const auth = getAuth(app)
 export const db = getFirestore(app)
 

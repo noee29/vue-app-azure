@@ -11,18 +11,22 @@ const cvStore = useCvStore()
 
 const utilisateurNonConnecte = ref(false)
 const imageActive = ref("")
+const infoMessage = ref("")
 
+// Données réactives liées à l'état du store
 const loading = computed(() => cvStore.loading)
 const errorMessage = computed(() => cvStore.error)
 const historique = computed(() => cvStore.cvs)
 const texteCompteur = computed(() => cvStore.texteCompteur)
 
+// Charge l'historique des CV de l'utilisateur connecté
 const chargerHistorique = async () => {
   utilisateurNonConnecte.value = false
   cvStore.clearMessages()
 
   await authStore.waitUntilReady()
 
+  // Si aucun utilisateur n'est connecté, on affiche l'état correspondant
   if (!authStore.user) {
     utilisateurNonConnecte.value = true
     return
@@ -35,6 +39,7 @@ const chargerHistorique = async () => {
   }
 }
 
+// Ouvre un CV existant dans la page de génération/édition
 const ouvrirCV = (cv) => {
   if (!cv || !cv.id || !cv.type) {
     return
@@ -43,6 +48,7 @@ const ouvrirCV = (cv) => {
   router.push("/generer/" + cv.type + "?id=" + cv.id)
 }
 
+// Affiche l'aperçu du CV en grand format
 const ouvrirApercuGrand = (cv) => {
   if (!cv || !cv.apercuImage) {
     return
@@ -51,10 +57,12 @@ const ouvrirApercuGrand = (cv) => {
   imageActive.value = cv.apercuImage
 }
 
+// Ferme l'aperçu agrandi
 const fermerApercuGrand = () => {
   imageActive.value = ""
 }
 
+// Supprime un CV après confirmation de l'utilisateur
 const supprimerCVItem = async (cv) => {
   if (!cv || !cv.id || !authStore.user) {
     return
@@ -72,6 +80,7 @@ const supprimerCVItem = async (cv) => {
   }
 }
 
+// Charge automatiquement l'historique au montage du composant
 onMounted(() => {
   chargerHistorique()
 })

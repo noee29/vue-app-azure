@@ -10,26 +10,32 @@ import eyeClosed from "@/assets/icons/Icon-eye-closed.png"
 const router = useRouter()
 const authStore = useAuthStore()
 
+// Champs du formulaire de connexion
 const email = ref("")
 const password = ref("")
 const errorMessage = ref("")
 const showPassword = ref(false)
 
+// Permet d'afficher ou masquer le mot de passe
 const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
+// Type dynamique pour l'input mot de passe
 const motDePasseType = computed(() => {
   return showPassword.value ? "text" : "password"
 })
 
+// Icône dynamique (œil ouvert / fermé)
 const iconeMotDePasse = computed(() => {
   return showPassword.value ? eyeOpen : eyeClosed
 })
 
+// Gestion de la connexion utilisateur avec Firebase
 const handleLogin = async () => {
   errorMessage.value = ""
 
+  // Vérification des champs
   if (!email.value || !password.value) {
     errorMessage.value = "Veuillez remplir tous les champs."
     return
@@ -37,8 +43,11 @@ const handleLogin = async () => {
 
   try {
     await authStore.login(email.value, password.value)
+
+    // Redirection après connexion réussie
     router.push("/generer")
   } catch (error) {
+    // Gestion des erreurs Firebase
     if (error.code === "auth/invalid-credential") {
       errorMessage.value = "Email ou mot de passe incorrect."
     } else if (error.code === "auth/invalid-email") {
@@ -49,6 +58,7 @@ const handleLogin = async () => {
   }
 }
 
+// État de chargement récupéré depuis le store
 const loading = computed(() => authStore.loading)
 </script>
 

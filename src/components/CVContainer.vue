@@ -1,4 +1,5 @@
 <script setup>
+// Props reçues depuis le parent (image, texte, type de CV)
 const props = defineProps({
   imageSrc: {
     type: String,
@@ -14,8 +15,10 @@ const props = defineProps({
   },
 })
 
+// Émission d'un événement pour notifier le parent du choix
 const emit = defineEmits(["select"])
 
+// Envoie le type de CV sélectionné au composant parent
 const handleSelect = () => {
   emit("select", props.type)
 }

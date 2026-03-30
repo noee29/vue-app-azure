@@ -10,10 +10,14 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
+// Permet de savoir quelle page est active pour styliser le menu
 const isGenererActive = computed(() => route.path.startsWith("/generer"))
 const isHistoriqueActive = computed(() => route.path.startsWith("/historique"))
+
+// Vérifie si l'utilisateur est connecté
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 
+// Déconnecte l'utilisateur et redirige vers la page de connexion
 const handleLogout = async () => {
   try {
     await authStore.logout()

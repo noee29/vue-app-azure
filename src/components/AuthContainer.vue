@@ -1,6 +1,7 @@
 <script setup>
 import defaultAuthImage from "@/assets/images/Authentification.png"
 
+// Image affichée dans le composant (image par défaut si aucune n'est fournie)
 const props = defineProps({
   imageSrc: {
     type: String,

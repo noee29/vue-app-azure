@@ -21,6 +21,7 @@ const aujourdhui = new Date()
 const moisActuel = aujourdhui.getMonth() + 1
 const anneeActuelle = aujourdhui.getFullYear()
 
+// Structure principale du formulaire CV
 const form = reactive({
   prenom: "",
   nom: "",
@@ -60,7 +61,7 @@ const formatPeriode = (moisDebut, anneeDebut, moisFin, anneeFin) => {
   return debut + " – " + fin
 }
 
-// Trie du plus récent au plus ancien
+// Trie les éléments du plus récent au plus ancien
 const trierParDate = (liste) => {
   return [...liste].sort((a, b) => {
     const dateA = new Date(a.anneeFin || a.anneeDebut || 0, (a.moisFin || a.moisDebut || 1) - 1)
@@ -79,6 +80,7 @@ const enLignes = (texte) => {
   return texte.split("\n").filter((l) => l.trim())
 }
 
+// Vérifie qu'une date de fin n'est pas avant la date de début
 const dateFinInvalide = (element) => {
   if (!element) {
     return false
@@ -102,6 +104,7 @@ const dateFinInvalide = (element) => {
   return false
 }
 
+// Vérifie toutes les sections avant export du CV
 const aDesDatesInvalides = () => {
   for (let i = 0; i < form.formations.length; i++) {
     if (dateFinInvalide(form.formations[i])) {
@@ -161,7 +164,7 @@ const attendreUtilisateurConnecte = () => {
   })
 }
 
-// Crée un aperçu image du CV pour l'historique.
+// Crée un aperçu image du CV pour l'affichage dans l'historique
 const creerApercuImage = async () => {
   const element = document.getElementById("cv-export")
   if (!element) {
@@ -211,6 +214,7 @@ const creerApercuImage = async () => {
   }
 }
 
+// Sauvegarde ou met à jour le CV dans Firestore
 const sauvegarder = async () => {
   const user = auth.currentUser
   if (!user) {
@@ -245,6 +249,7 @@ const sauvegarder = async () => {
   }
 }
 
+// Exporte le CV en PDF après vérification des données
 const telechargerPDF = async () => {
   if (!utilisateurEstConnecte()) {
     alert("Vous devez etre connecté pour telecharger votre CV en PDF.")
@@ -296,6 +301,7 @@ const annees = computed(() => {
   return liste
 })
 
+// Au chargement, récupère un CV existant si un identifiant est présent dans l'URL
 onMounted(async () => {
   const id = route.query.id
   if (typeof id !== "string") {
@@ -318,9 +324,8 @@ onMounted(async () => {
   }
 })
 
-
+// Envoie les données du CV à l'API pour obtenir une analyse
 const analyserMonCV = async () => {
-
   loadingAnalyse.value = true
 
   const result = await analyserCV(form)

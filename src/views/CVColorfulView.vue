@@ -18,10 +18,12 @@ const messageSauvegarde = ref("")
 const couleurFond = ref("#0d2137")
 const couleurTexte = ref("#ffffff")
 
+// Données utiles pour la gestion des périodes du CV
 const moisNoms = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
 const aujourdhui = new Date()
 const anneeActuelle = aujourdhui.getFullYear()
 
+// Structure principale du formulaire CV
 const form = reactive({
   prenom: "",
   nom: "",
@@ -50,6 +52,7 @@ const moisOptions = [
   { value: 11, label: "Novembre" }, { value: 12, label: "Décembre" },
 ]
 
+// Génère la liste des années proposées dans les sélecteurs
 const annees = computed(() => {
   const liste = []
   for (let a = anneeActuelle + 2; a >= 1970; a--) {
@@ -58,6 +61,7 @@ const annees = computed(() => {
   return liste
 })
 
+// Formate une période pour l'affichage dans le CV
 const formatPeriode = (moisDebut, anneeDebut, moisFin, anneeFin) => {
   let debut = ""
   if (moisDebut && anneeDebut) {
@@ -87,6 +91,7 @@ const formatPeriode = (moisDebut, anneeDebut, moisFin, anneeFin) => {
   return debut + " – " + fin
 }
 
+// Trie les listes par date décroissante pour afficher les plus récentes en premier
 const trierParDate = (liste) => {
   return [...liste].sort((a, b) => {
     const anneeA = a.anneeFin || a.anneeDebut || 0
@@ -106,11 +111,13 @@ const experiencesTries = computed(() => trierParDate(form.experiences))
 const formationsTries = computed(() => trierParDate(form.formations))
 const benevolesTries = computed(() => trierParDate(form.benevoles))
 
+// Transforme un texte multiligne en liste exploitable dans le template
 const enLignes = (texte) => {
   if (!texte) return []
   return texte.split("\n").filter((l) => l.trim())
 }
 
+// Vérifie qu'une date de fin n'est pas antérieure à la date de début
 const dateFinInvalide = (element) => {
   if (!element) {
     return false
@@ -134,6 +141,7 @@ const dateFinInvalide = (element) => {
   return false
 }
 
+// Vérifie toutes les sections du CV avant export
 const aDesDatesInvalides = () => {
   for (let i = 0; i < form.formations.length; i++) {
     if (dateFinInvalide(form.formations[i])) {
@@ -156,6 +164,7 @@ const aDesDatesInvalides = () => {
   return false
 }
 
+// Vérifie si un utilisateur est connecté avant certaines actions
 const utilisateurEstConnecte = () => {
   if (!auth.currentUser) {
     return false
@@ -164,6 +173,7 @@ const utilisateurEstConnecte = () => {
   return true
 }
 
+// Convertit la photo choisie par l'utilisateur en DataURL pour l'aperçu
 const onPhotoChange = (event) => {
   const fichier = event.target.files[0]
   if (!fichier) return
@@ -172,6 +182,7 @@ const onPhotoChange = (event) => {
   reader.readAsDataURL(fichier)
 }
 
+// Fonctions d'ajout / suppression d'éléments dynamiques du CV
 const ajouterFormation = () => {
   form.formations.push({ ecole: "", diplome: "", moisDebut: "", anneeDebut: "", moisFin: "", anneeFin: "" })
 }
@@ -200,6 +211,7 @@ const supprimerCertification = (i) => {
   form.certifications.splice(i, 1)
 }
 
+// Attend que Firebase ait déterminé si l'utilisateur est connecté
 const attendreUtilisateurConnecte = () => {
   return new Promise((resolve) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -262,6 +274,7 @@ const creerApercuImage = async () => {
   }
 }
 
+// Sauvegarde ou met à jour le CV dans Firestore
 const sauvegarder = async () => {
   const user = auth.currentUser
   if (!user) {
@@ -297,6 +310,7 @@ const sauvegarder = async () => {
   }
 }
 
+// Exporte le CV en PDF après vérifications
 const telechargerPDF = async () => {
   if (!utilisateurEstConnecte()) {
     alert("Vous devez etre connecté pour telecharger votre CV en PDF.")
@@ -331,6 +345,7 @@ const telechargerPDF = async () => {
   await html2pdf().set(options).from(element).save()
 }
 
+// Au chargement, récupère un CV existant si un id est présent dans l'URL
 onMounted(async () => {
   const id = route.query.id
   if (typeof id !== "string") {
@@ -353,7 +368,6 @@ onMounted(async () => {
   }
 })
 
-
 const construireDonneesAnalyse = () => {
   return {
     prenom: form.prenom,
@@ -373,6 +387,7 @@ const construireDonneesAnalyse = () => {
   }
 }
 
+// Envoie les données du CV à l'API d'analyse
 const analyserMonCV = async () => {
   loadingAnalyse.value = true
   messageAnalyse.value = ""

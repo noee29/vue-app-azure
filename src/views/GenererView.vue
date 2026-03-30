@@ -6,6 +6,7 @@ import cvMain from "@/assets/images/cv-template-colorfiul.jpg"
 
 const router = useRouter()
 
+// Redirige vers le template de CV sélectionné
 const handleSelect = (type) => {
   router.push("/generer/" + type)
 }

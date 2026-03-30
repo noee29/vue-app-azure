@@ -17,20 +17,25 @@ export const useCvStore = defineStore("cv", {
   }),
 
   getters: {
+    // Retourne le nombre total de CV enregistrés
     totalCV: (state) => state.cvs.length,
 
+    // Liste des CV marqués comme complets
     cvsComplets: (state) => {
       return state.cvs.filter((cv) => cv.complet)
     },
 
+    // Liste des CV incomplets
     cvsIncomplets: (state) => {
       return state.cvs.filter((cv) => !cv.complet)
     },
 
+    // Permet de retrouver un CV à partir de son identifiant
     cvParId: (state) => {
       return (id) => state.cvs.find((cv) => cv.id === id) || null
     },
 
+    // Texte affiché dans l'historique pour indiquer le nombre de CV
     texteCompteur: (state) => {
       const total = state.cvs.length
       return total <= 1 ? `Vous avez ${total} CV` : `Vous avez ${total} CV`
@@ -38,11 +43,13 @@ export const useCvStore = defineStore("cv", {
   },
 
   actions: {
+    // Réinitialise les messages d'erreur et de succès
     clearMessages() {
       this.error = ""
       this.successMessage = ""
     },
 
+    // Récupère tous les CV de l'utilisateur
     async fetchCVs(uid) {
       this.loading = true
       this.error = ""
@@ -60,6 +67,7 @@ export const useCvStore = defineStore("cv", {
       }
     },
 
+    // Charge un CV précis depuis Firestore
     async fetchCV(uid, cvId) {
       this.loading = true
       this.error = ""
@@ -86,6 +94,7 @@ export const useCvStore = defineStore("cv", {
       }
     },
 
+    // Ajoute un nouveau CV puis met à jour la liste locale
     async addCV(uid, email, type, titre, donnees, apercuImage = "") {
       this.loading = true
       this.error = ""
@@ -106,6 +115,7 @@ export const useCvStore = defineStore("cv", {
       }
     },
 
+    // Met à jour un CV existant puis synchronise le store
     async updateCV(uid, email, cvId, titre, donnees, apercuImage = "") {
       this.loading = true
       this.error = ""
@@ -135,6 +145,7 @@ export const useCvStore = defineStore("cv", {
       }
     },
 
+    // Supprime un CV du store et de Firestore
     async deleteCV(uid, cvId) {
       this.loading = true
       this.error = ""
@@ -158,6 +169,7 @@ export const useCvStore = defineStore("cv", {
       }
     },
 
+    // Réinitialise le CV actuellement sélectionné
     resetCurrentCv() {
       this.currentCv = null
     },

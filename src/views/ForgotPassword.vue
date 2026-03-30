@@ -20,10 +20,12 @@ export default {
     }
   },
   methods: {
+    // Envoie un email de réinitialisation du mot de passe via Firebase
     async sendResetEmail() {
       this.message = ""
       this.errorMessage = ""
 
+      // Vérifie que l'email est renseigné
       if (!this.email) {
         this.errorMessage = "Veuillez entrer votre email."
         return
@@ -31,10 +33,14 @@ export default {
 
       try {
         this.loading = true
+
+        // Appel au service Firebase pour envoyer le lien de reset
         await resetPassword(this.email)
+
         this.message =
           "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé."
       } catch (error) {
+        // Gestion d'erreur générique
         this.errorMessage =
           "Impossible d'envoyer l'email de réinitialisation."
       } finally {

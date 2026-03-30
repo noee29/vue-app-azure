@@ -6,6 +6,7 @@ import iconOrganiser from "@/assets/icons/Icon-organiser.png"
 
 const router = useRouter()
 
+// Redirige vers la page de génération de CV
 const goToGenerer = () => {
   router.push("/generer")
 }
